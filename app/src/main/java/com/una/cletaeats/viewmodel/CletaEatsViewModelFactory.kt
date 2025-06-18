@@ -20,6 +20,14 @@ class CletaEatsViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return RegistroClienteViewModel(repository) as T
         }
+        if (modelClass.isAssignableFrom(RegistroRepartidorViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return RegistroRepartidorViewModel(repository) as T
+        }
+        if (modelClass.isAssignableFrom(RegistroRestauranteViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return RegistroRestauranteViewModel(repository) as T
+        }
         // Si se pide un ViewModel desconocido, lanza un error
         throw IllegalArgumentException("Unknown ViewModel class")
     }

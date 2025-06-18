@@ -66,17 +66,27 @@ fun AppMain() {
                     }
                 )
                 TipoRegistro.REPARTIDOR -> {
-                    // Aquí iría el RegistroRepartidorScreen cuando lo implementes
-                    PlaceholderScreen(
-                        mensaje = "Registro de Repartidor aún no implementado",
-                        onVolver = { pantallaActual = "seleccion_registro" }
+                    RegistroRepartidorScreen(
+                        onRepartidorRegistrado = {
+                            // Tras un registro exitoso, volvemos al login
+                            pantallaActual = "login"
+                        },
+                        onVolver = {
+                            // Si el usuario quiere volver, regresa a la pantalla de selección
+                            pantallaActual = "seleccion_registro"
+                        }
                     )
                 }
                 TipoRegistro.RESTAURANTE -> {
-                    // Aquí iría el RegistroRestauranteScreen cuando lo implementes
-                    PlaceholderScreen(
-                        mensaje = "Registro de Restaurante aún no implementado",
-                        onVolver = { pantallaActual = "seleccion_registro" }
+                    RegistroRestauranteScreen(
+                        onRestauranteRegistrado = {
+                            // Tras un registro exitoso, volvemos al login
+                            pantallaActual = "login"
+                        },
+                        onVolver = {
+                            // Si el usuario quiere volver, regresa a la pantalla de selección
+                            pantallaActual = "seleccion_registro"
+                        }
                     )
                 }
                 null -> {
