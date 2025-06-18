@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.una.cletaeats.data.model.Cliente
+import com.una.cletaeats.data.model.TipoUsuario
 import com.una.cletaeats.ui.screens.*
 import com.una.cletaeats.ui.theme.CletaEatsTheme
 
@@ -38,11 +39,22 @@ fun AppMain() {
     var pantallaActual by remember { mutableStateOf("login") }
     var tipoRegistroSeleccionado by remember { mutableStateOf<TipoRegistro?>(null) }
 
+    val PANTALLA_HOME_CLIENTE = "home_cliente"
+    val PANTALLA_HOME_REPARTIDOR = "home_repartidor"
+    val PANTALLA_HOME_RESTAURANTE = "home_restaurante"
+
     // Aquí puedes tener una lista o repo simulado para usuarios si quieres
 
     when (pantallaActual) {
         "login" -> LoginScreen(
-            onLoginSuccess = { /* Navegar a pantalla principal o home */ },
+            onLoginSuccess = { usuarioLogueado ->
+                // AQUÍ OCURRE LA MAGIA
+                when (usuarioLogueado.rol) {
+                    TipoUsuario.CLIENTE -> pantallaActual = PANTALLA_HOME_CLIENTE
+                    TipoUsuario.REPARTIDOR -> pantallaActual = PANTALLA_HOME_REPARTIDOR
+                    TipoUsuario.RESTAURANTE -> pantallaActual = PANTALLA_HOME_RESTAURANTE
+                }
+            },
             onNavigateToRegistro = {
                 pantallaActual = "seleccion_registro"
             }
@@ -54,6 +66,20 @@ fun AppMain() {
             },
             onVolver = { pantallaActual = "login" }
         )
+        // --- AÑADIMOS LOS CASOS PARA LAS NUEVAS PANTALLAS PRINCIPALES ---
+        PANTALLA_HOME_CLIENTE -> {
+            HomeScreen(onLogout = {
+                // Al cerrar sesión, volvemos a la pantalla de login
+                pantallaActual = "login"
+            })
+        }
+        PANTALLA_HOME_REPARTIDOR -> {
+            PlaceholderScreen(mensaje = "Bienvenido, Repartidor", onVolver = { pantallaActual = "login"})
+        }
+        PANTALLA_HOME_RESTAURANTE -> {
+            PlaceholderScreen(mensaje = "Bienvenido, Restaurante", onVolver = { pantallaActual = "login"})
+        }
+
         "registro" -> {
             when (tipoRegistroSeleccionado) {
                 TipoRegistro.CLIENTE -> RegistroClienteScreen(
