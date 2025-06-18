@@ -38,14 +38,10 @@ import androidx.compose.material.icons.filled.VisibilityOff
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistroClienteScreen(
-    onClienteRegistrado: (Cliente) -> Unit,
-    onVolver: () -> Unit = { /* Acción por defecto si no se necesita */ }
+    viewModel: RegistroClienteViewModel, // 1. Recibe el ViewModel
+    onClienteRegistrado: () -> Unit,
+    onVolver: () -> Unit
 ) {
-    // Esta parte está perfecta
-    val context = LocalContext.current.applicationContext
-    val repository = remember { UsuarioRepository(context) }
-    val factory = remember { CletaEatsViewModelFactory(repository) }
-    val viewModel: RegistroClienteViewModel = viewModel(factory = factory)
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()

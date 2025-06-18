@@ -25,12 +25,9 @@ import androidx.compose.material3.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onLogout: () -> Unit) {
-    // Obtenemos el ViewModel como ya sabemos
-    val context = LocalContext.current.applicationContext
-    val repository = remember { UsuarioRepository(context) }
-    val factory = remember { CletaEatsViewModelFactory(repository) }
-    val viewModel: HomeViewModel = viewModel(factory = factory)
+fun HomeScreen( viewModel: HomeViewModel, // Se recibe el viewModel como parámetro
+                onLogout: () -> Unit,
+                onRestaurantClick: (Restaurante) -> Unit) {
 
     // El estado de la UI que contiene la lista de restaurantes
     val uiState by viewModel.uiState.collectAsState()
@@ -96,7 +93,13 @@ fun HomeScreen(onLogout: () -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(uiState.restaurantes) { restaurante ->
-                        RestaurantItem(restaurante = restaurante)
+                        RestaurantItem(restaurante = restaurante,
+                            onClick = {
+                                // TODO: Navegar a la pantalla del menú de este restaurante
+                                // Pasaremos la cédula jurídica como identificador
+                                onRestaurantClick(restaurante) // Llama al nuevo callback
+                            }
+                        )
                     }
                 }
             }
@@ -106,8 +109,9 @@ fun HomeScreen(onLogout: () -> Unit) {
 
 // Composable personalizado para cada elemento de la lista de restaurantes
 @Composable
-fun RestaurantItem(restaurante: Restaurante) {
+fun RestaurantItem(restaurante: Restaurante, onClick: () -> Unit) {
     Card(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {

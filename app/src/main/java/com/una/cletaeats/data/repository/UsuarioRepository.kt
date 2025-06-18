@@ -69,6 +69,10 @@ class UsuarioRepository(context: Context) {
         return repartidorDao.obtenerTodosLosRepartidores().any { it.cedula == cedula }
     }
 
+    fun actualizarRepartidor(repartidor: Repartidor) {
+        repartidorDao.actualizarRepartidor(repartidor)
+    }
+
     // ==================== LÓGICA DE RESTAURANTES ====================
 
     fun agregarRestaurante(restaurante: Restaurante) {

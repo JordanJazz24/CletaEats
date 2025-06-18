@@ -71,4 +71,19 @@ class RepartidorDao(private val context: Context) {
             return emptyList()
         }
     }
+
+    fun actualizarRepartidor(repartidorActualizado: Repartidor) {
+        try {
+            val todosLosRepartidores = obtenerTodosLosRepartidores().toMutableList()
+            val index = todosLosRepartidores.indexOfFirst { it.cedula == repartidorActualizado.cedula }
+
+            if (index != -1) {
+                todosLosRepartidores[index] = repartidorActualizado
+                // Reescribimos el archivo completo con la lista actualizada
+                file.writeText(todosLosRepartidores.joinToString(separator = "") { repartidorToCsv(it) })
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
 }

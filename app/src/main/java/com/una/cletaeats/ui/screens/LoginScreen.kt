@@ -21,22 +21,10 @@ import com.una.cletaeats.viewmodel.CletaEatsViewModelFactory
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
+    viewModel: LoginViewModel, // 1. Recibe el ViewModel como parámetro
     onLoginSuccess: (Usuario) -> Unit,
-    onNavigateToRegistro: () -> Unit,
-    // Eliminamos la obtención directa del viewModel de los parámetros
+    onNavigateToRegistro: () -> Unit
 ) {
-    // 1. Obtenemos el contexto de la aplicación
-    val context = LocalContext.current.applicationContext
-
-    // 2. Creamos una única instancia de nuestro repositorio
-    val repository = remember { UsuarioRepository(context) }
-
-    // 3. Creamos la factory con el repositorio
-    val factory = remember { CletaEatsViewModelFactory(repository) }
-
-    // 4. Obtenemos el ViewModel usando la factory
-    val viewModel: LoginViewModel = viewModel(factory = factory)
-
     val loginState by viewModel.loginState.collectAsState()
 
     // SnackbarHostState para manejar snackbars en Material3
