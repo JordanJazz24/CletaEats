@@ -11,14 +11,23 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.una.cletaeats.data.model.Cliente
 import com.una.cletaeats.viewmodel.RegistroClienteViewModel
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.una.cletaeats.data.repository.UsuarioRepository
+import com.una.cletaeats.viewmodel.CletaEatsViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistroClienteScreen(
     onClienteRegistrado: (Cliente) -> Unit,
-    viewModel: RegistroClienteViewModel = viewModel(),
     onVolver: () -> Unit = { /* Acción por defecto si no se necesita */ }
 ) {
+    // Aplicamos el mismo patrón que en LoginScreen
+    val context = LocalContext.current.applicationContext
+    val repository = remember { UsuarioRepository(context) }
+    val factory = remember { CletaEatsViewModelFactory(repository) }
+    val viewModel: RegistroClienteViewModel = viewModel(factory = factory)
+
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val clienteState = viewModel.clienteState.collectAsState()

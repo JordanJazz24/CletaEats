@@ -1,99 +1,46 @@
 package com.una.cletaeats.data.repository
 
-import com.una.cletaeats.data.model.*
+import android.content.Context
+import com.una.cletaeats.data.model.Cliente
+import com.una.cletaeats.data.model.Usuario
 
-object UsuarioRepository {
-    private val usuarios: MutableList<Usuario> = mutableListOf()
+// Ahora es una clase que necesita el contexto de la aplicación
+class UsuarioRepository(context: Context) {
 
-    // ==================== COMÚN ====================
-    fun agregarUsuario(usuario: Usuario) {
-        if (!existeUsuario(usuario.correo)) {
-            usuarios.add(usuario)
-        }
-    }
+    // Instanciamos nuestros DAOs, pasándoles el contexto
+    private val clienteDao = ClienteDao(context)
+    // private val repartidorDao = RepartidorDao(context)  // <-- Añadiremos estos después
+    // private val restauranteDao = RestauranteDao(context)
 
-    fun existeUsuario(correo: String): Boolean {
-        return usuarios.any { it.correo == correo }
-    }
+    // ==================== LÓGICA DE USUARIOS ====================
 
+    // La lógica de login ahora debe leer de TODOS los archivos de usuarios
     fun obtenerUsuario(correo: String, password: String): Usuario? {
-        return usuarios.find { it.correo == correo && it.password == password }
+        val clientes = clienteDao.obtenerTodosLosClientes()
+        // val repartidores = repartidorDao.obtenerTodosLosRepartidores()
+        // val restaurantes = restauranteDao.obtenerTodosLosRestaurantes()
+
+        // Buscamos en la lista de clientes
+        val usuarioEncontrado = clientes.find { it.correo == correo && it.password == password }
+        if (usuarioEncontrado != null) return usuarioEncontrado
+
+        // Repetiríamos la búsqueda para repartidores y restaurantes...
+
+        return null // Si no se encuentra en ninguna lista
     }
 
-    fun eliminarUsuario(correo: String): Boolean {
-        return usuarios.removeIf { it.correo == correo }
-    }
+    // ==================== LÓGICA DE CLIENTES ====================
 
-    fun actualizarUsuario(usuarioActualizado: Usuario): Boolean {
-        val index = usuarios.indexOfFirst { it.correo == usuarioActualizado.correo }
-        return if (index != -1) {
-            usuarios[index] = usuarioActualizado
-            true
-        } else {
-            false
-        }
-    }
-
-    // ==================== CLIENTES ====================
     fun agregarCliente(cliente: Cliente) {
-        agregarUsuario(cliente)
+        // La responsabilidad de guardar ahora es del DAO
+        clienteDao.agregarCliente(cliente)
     }
 
     fun obtenerClientes(): List<Cliente> {
-        return usuarios.filterIsInstance<Cliente>()
+        return clienteDao.obtenerTodosLosClientes()
     }
 
-    fun obtenerClientePorCorreo(correo: String): Cliente? {
-        return usuarios.filterIsInstance<Cliente>().find { it.correo == correo }
-    }
-
-    fun actualizarCliente(cliente: Cliente): Boolean {
-        return actualizarUsuario(cliente)
-    }
-
-    fun eliminarCliente(correo: String): Boolean {
-        return usuarios.removeIf { it is Cliente && it.correo == correo }
-    }
-
-    // ==================== REPARTIDORES ====================
-    fun agregarRepartidor(repartidor: Repartidor) {
-        agregarUsuario(repartidor)
-    }
-
-    fun obtenerRepartidores(): List<Repartidor> {
-        return usuarios.filterIsInstance<Repartidor>()
-    }
-
-    fun obtenerRepartidorPorCorreo(correo: String): Repartidor? {
-        return usuarios.filterIsInstance<Repartidor>().find { it.correo == correo }
-    }
-
-    fun actualizarRepartidor(repartidor: Repartidor): Boolean {
-        return actualizarUsuario(repartidor)
-    }
-
-    fun eliminarRepartidor(correo: String): Boolean {
-        return usuarios.removeIf { it is Repartidor && it.correo == correo }
-    }
-
-    // ==================== RESTAURANTES ====================
-    fun agregarRestaurante(restaurante: Restaurante) {
-        agregarUsuario(restaurante)
-    }
-
-    fun obtenerRestaurantes(): List<Restaurante> {
-        return usuarios.filterIsInstance<Restaurante>()
-    }
-
-    fun obtenerRestaurantePorCorreo(correo: String): Restaurante? {
-        return usuarios.filterIsInstance<Restaurante>().find { it.correo == correo }
-    }
-
-    fun actualizarRestaurante(restaurante: Restaurante): Boolean {
-        return actualizarUsuario(restaurante)
-    }
-
-    fun eliminarRestaurante(correo: String): Boolean {
-        return usuarios.removeIf { it is Restaurante && it.correo == correo }
+    fun existeCliente(cedula: String): Boolean {
+        return clienteDao.obtenerTodosLosClientes().any { it.cedula == cedula }
     }
 }

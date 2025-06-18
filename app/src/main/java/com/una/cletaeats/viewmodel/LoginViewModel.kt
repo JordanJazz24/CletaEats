@@ -17,7 +17,7 @@ sealed class LoginResult {
 }
 
 class LoginViewModel(
-    private val usuarioRepository: UsuarioRepository = UsuarioRepository
+    private val usuarioRepository: UsuarioRepository // Ya no hay valor por defecto
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow<LoginResult>(LoginResult.Idle)

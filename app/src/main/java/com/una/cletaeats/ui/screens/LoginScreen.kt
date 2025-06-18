@@ -13,14 +13,30 @@ import com.una.cletaeats.data.model.Usuario
 import com.una.cletaeats.viewmodel.LoginResult
 import com.una.cletaeats.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.una.cletaeats.data.repository.UsuarioRepository
+import com.una.cletaeats.viewmodel.CletaEatsViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     onLoginSuccess: (Usuario) -> Unit,
     onNavigateToRegistro: () -> Unit,
-    viewModel: LoginViewModel = viewModel()
+    // Eliminamos la obtención directa del viewModel de los parámetros
 ) {
+    // 1. Obtenemos el contexto de la aplicación
+    val context = LocalContext.current.applicationContext
+
+    // 2. Creamos una única instancia de nuestro repositorio
+    val repository = remember { UsuarioRepository(context) }
+
+    // 3. Creamos la factory con el repositorio
+    val factory = remember { CletaEatsViewModelFactory(repository) }
+
+    // 4. Obtenemos el ViewModel usando la factory
+    val viewModel: LoginViewModel = viewModel(factory = factory)
+
     val loginState by viewModel.loginState.collectAsState()
 
     // SnackbarHostState para manejar snackbars en Material3

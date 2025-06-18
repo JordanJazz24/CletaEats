@@ -3,6 +3,7 @@ package com.una.cletaeats.viewmodel
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import com.una.cletaeats.data.repository.UsuarioRepository
 
 data class ClienteFormState(
     val cedula: String = "",
@@ -21,7 +22,9 @@ data class ClienteFormState(
     val errorPassword: String? = null
 )
 
-class RegistroClienteViewModel : ViewModel() {
+class RegistroClienteViewModel(
+    private val usuarioRepository: UsuarioRepository
+) : ViewModel() {
 
     private val _clienteState = MutableStateFlow(ClienteFormState())
     val clienteState: StateFlow<ClienteFormState> = _clienteState
@@ -66,10 +69,6 @@ class RegistroClienteViewModel : ViewModel() {
         val errorCorreo = if (!state.correo.contains("@")) "Correo inválido" else null
         val errorPassword = if (state.password.length < 6) "Contraseña debe tener al menos 6 caracteres" else null
 
-        if (listOf(errorCedula, errorNombre, errorDireccion, errorTelefono, errorNumeroTarjeta, errorCorreo, errorPassword).any { it != null }) {
-            valido = false
-        }
-
         _clienteState.value = state.copy(
             errorCedula = errorCedula,
             errorNombre = errorNombre,
@@ -79,7 +78,17 @@ class RegistroClienteViewModel : ViewModel() {
             errorCorreo = errorCorreo,
             errorPassword = errorPassword
         )
-        return valido
+
+        val esFormularioValido = listOf(errorCedula, errorNombre, errorDireccion, errorTelefono, errorNumeroTarjeta, errorCorreo, errorPassword).all { it == null }
+
+        if (esFormularioValido) {
+            // Aquí usamos el repositorio para guardar el cliente en el archivo.
+            val nuevoCliente = obtenerCliente()
+            usuarioRepository.agregarCliente(nuevoCliente)
+            return true
+        } else {
+            return false
+        }
     }
 
     fun obtenerCliente() = com.una.cletaeats.data.model.Cliente(
