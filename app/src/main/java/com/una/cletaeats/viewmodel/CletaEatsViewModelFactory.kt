@@ -24,6 +24,7 @@ class CletaEatsViewModelFactory(
             modelClass.isAssignableFrom(HomeViewModel::class.java) -> HomeViewModel(repository) as T
             modelClass.isAssignableFrom(OrderViewModel::class.java) -> OrderViewModel(context) as T
             modelClass.isAssignableFrom(RepartidorDashboardViewModel::class.java) -> RepartidorDashboardViewModel(pedidoRepository, repository) as T
+            modelClass.isAssignableFrom(RestauranteDashboardViewModel::class.java) -> RestauranteDashboardViewModel(pedidoRepository) as T
             else -> throw IllegalArgumentException("Unknown ViewModel class")
         }
     }

@@ -21,6 +21,7 @@ import com.una.cletaeats.ui.screens.*
 import com.una.cletaeats.ui.theme.CletaEatsTheme
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.una.cletaeats.data.model.Restaurante
 
 class MainActivity : ComponentActivity() {
 
@@ -59,6 +60,7 @@ fun AppMain() {
     val homeViewModel: com.una.cletaeats.viewmodel.HomeViewModel = viewModel(factory = factory)
     val orderViewModel: com.una.cletaeats.viewmodel.OrderViewModel = viewModel(factory = factory)
     val repartidorDashboardViewModel: com.una.cletaeats.viewmodel.RepartidorDashboardViewModel = viewModel(factory = factory)
+    val restauranteDashboardViewModel: com.una.cletaeats.viewmodel.RestauranteDashboardViewModel = viewModel(factory = factory)
 
     // NAVEGACIÓN
     when (pantallaActual) {
@@ -129,7 +131,21 @@ fun AppMain() {
             }
         }
 
-        "home_restaurante" -> PlaceholderScreen(mensaje = "Bienvenido, Restaurante", onVolver = { pantallaActual = "login" })
+        "home_restaurante" -> {
+            val restaurante = usuarioLogueado as? Restaurante
+            if (restaurante != null) {
+                RestauranteDashboardScreen(
+                    viewModel = restauranteDashboardViewModel,
+                    restaurante = restaurante,
+                    onLogout = {
+                        usuarioLogueado = null
+                        pantallaActual = "login"
+                    }
+                )
+            } else {
+                pantallaActual = "login"
+            }
+        }
         else -> pantallaActual = "login"
     }
 }
