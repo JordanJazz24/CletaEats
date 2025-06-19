@@ -10,6 +10,7 @@ data class Restaurante(
     val tipoComida: TipoComida,
     var calificacionPromedio: Double = 0.0,
     var cantidadPedidos: Int = 0,
+    val menu: MutableMap<Int, String> = mutableMapOf(),
     override val correo: String,
     override val password: String
 ) : Usuario(correo, password, TipoUsuario.RESTAURANTE)

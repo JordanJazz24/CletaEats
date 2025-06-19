@@ -1,10 +1,12 @@
 package com.una.cletaeats.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.ListAlt
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
@@ -27,11 +29,12 @@ import androidx.compose.material3.*
 @Composable
 fun HomeScreen( viewModel: HomeViewModel, // Se recibe el viewModel como parámetro
                 onLogout: () -> Unit,
-                onRestaurantClick: (Restaurante) -> Unit) {
+                onRestaurantClick: (Restaurante) -> Unit,
+                onMisPedidosClick: () -> Unit) {
 
     // El estado de la UI que contiene la lista de restaurantes
     val uiState by viewModel.uiState.collectAsState()
-
+    Log.d("HomeScreenDebug", "HomeScreen se está recomponiendo con una lista de ${uiState.restaurantes.size} restaurantes.")
     // Estado para controlar si el NavDrawer está abierto o cerrado
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -54,6 +57,12 @@ fun HomeScreen( viewModel: HomeViewModel, // Se recibe el viewModel como paráme
                     label = { Text("Mi Perfil") },
                     selected = false,
                     onClick = { /* TODO: Navegar a la pantalla de perfil */ }
+                )
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.ListAlt, contentDescription = "Mis Pedidos") }, // Necesitarás el import de ListAlt
+                    label = { Text("Mis Pedidos") },
+                    selected = false,
+                    onClick = onMisPedidosClick // <-- USA EL NUEVO CALLBACK
                 )
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Logout, contentDescription = "Cerrar Sesión") },

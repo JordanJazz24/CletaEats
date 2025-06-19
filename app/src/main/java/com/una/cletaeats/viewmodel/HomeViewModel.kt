@@ -1,5 +1,6 @@
 package com.una.cletaeats.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.una.cletaeats.data.model.Restaurante
@@ -24,6 +25,7 @@ class HomeViewModel(
 
     // El bloque init se ejecuta tan pronto como el ViewModel es creado
     init {
+        Log.d("HomeScreenDebug", "HomeViewModel ha sido inicializado.")
         cargarRestaurantes()
     }
 
@@ -34,6 +36,7 @@ class HomeViewModel(
             // Obtenemos los restaurantes desde el repositorio
             val listaRestaurantes = usuarioRepository.obtenerRestaurantes()
             // Actualizamos el estado con la nueva lista
+            Log.d("HomeScreenDebug", "ViewModel ha cargado una lista con ${listaRestaurantes.size} restaurantes.")
             _uiState.value = _uiState.value.copy(restaurantes = listaRestaurantes, isLoading = false)
         }
     }

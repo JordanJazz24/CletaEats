@@ -80,11 +80,17 @@ class UsuarioRepository(context: Context) {
     }
 
     fun obtenerRestaurantes(): List<Restaurante> {
+        val lista = restauranteDao.obtenerTodosLosRestaurantes()
+        Log.d("HomeScreenDebug", "Repositorio está devolviendo una lista con ${lista.size} restaurantes.")
         return restauranteDao.obtenerTodosLosRestaurantes()
     }
 
     fun existeRestaurante(cedulaJuridica: String): Boolean {
         // El documento pide no repetir cédulas jurídicas
         return restauranteDao.obtenerTodosLosRestaurantes().any { it.cedulaJuridica == cedulaJuridica }
+    }
+
+    fun actualizarRestaurante(restaurante: Restaurante) {
+        restauranteDao.actualizarRestaurante(restaurante)
     }
 }

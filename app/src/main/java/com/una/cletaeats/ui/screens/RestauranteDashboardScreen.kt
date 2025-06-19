@@ -18,6 +18,7 @@ import com.una.cletaeats.viewmodel.RestauranteDashboardViewModel
 fun RestauranteDashboardScreen(
     viewModel: RestauranteDashboardViewModel,
     restaurante: Restaurante,
+    onGestionarMenuClick: () -> Unit,
     onLogout: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -32,6 +33,9 @@ fun RestauranteDashboardScreen(
             TopAppBar(
                 title = { Text("Pedidos Recibidos") },
                 actions = {
+                    Button(onClick = onGestionarMenuClick, modifier = Modifier.padding(end = 8.dp)) {
+                        Text("Mi Menú")
+                    }
                     TextButton(onClick = onLogout) {
                         Text("Cerrar Sesión")
                     }
