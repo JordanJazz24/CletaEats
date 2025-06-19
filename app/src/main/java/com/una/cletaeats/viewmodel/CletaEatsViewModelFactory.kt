@@ -1,4 +1,3 @@
-// En CletaEatsViewModelFactory.kt
 package com.una.cletaeats.viewmodel
 
 import android.content.Context
@@ -9,11 +8,10 @@ import com.una.cletaeats.data.repository.UsuarioRepository
 
 class CletaEatsViewModelFactory(
     private val context: Context,
-    private val repository: UsuarioRepository
+    private val repository: UsuarioRepository // Este es nuestro UsuarioRepository principal
 ) : ViewModelProvider.Factory {
 
-    //La factory ahora también puede crear el PedidoRepository cuando lo necesite
-    private val pedidoRepository by lazy { PedidoRepository(context) }
+    private val pedidoRepository by lazy { PedidoRepository(context, repository) }
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
@@ -22,12 +20,21 @@ class CletaEatsViewModelFactory(
             modelClass.isAssignableFrom(RegistroRepartidorViewModel::class.java) -> RegistroRepartidorViewModel(repository) as T
             modelClass.isAssignableFrom(RegistroRestauranteViewModel::class.java) -> RegistroRestauranteViewModel(repository) as T
             modelClass.isAssignableFrom(HomeViewModel::class.java) -> HomeViewModel(repository) as T
-            modelClass.isAssignableFrom(OrderViewModel::class.java) -> OrderViewModel(context) as T
+            modelClass.isAssignableFrom(OrderViewModel::class.java) -> OrderViewModel(context, repository) as T
+
+            // =================================================================
+            // ===== LA CORRECCIÓN ESTÁ EN ESTA LÍNEA ==========================
+            // =================================================================
+            // Ahora le pasamos los dos repositorios que necesita.
             modelClass.isAssignableFrom(RepartidorDashboardViewModel::class.java) -> RepartidorDashboardViewModel(pedidoRepository, repository) as T
+
             modelClass.isAssignableFrom(RestauranteDashboardViewModel::class.java) -> RestauranteDashboardViewModel(pedidoRepository) as T
-            modelClass.isAssignableFrom(GestionarMenuViewModel::class.java) -> GestionarMenuViewModel(repository) as T
             modelClass.isAssignableFrom(MisPedidosViewModel::class.java) -> MisPedidosViewModel(pedidoRepository) as T
-            else -> throw IllegalArgumentException("Unknown ViewModel class")
+            modelClass.isAssignableFrom(GestionarMenuViewModel::class.java) -> GestionarMenuViewModel(repository) as T
+            modelClass.isAssignableFrom(ReportesViewModel::class.java) -> ReportesViewModel(repository, pedidoRepository) as T
+            modelClass.isAssignableFrom(CalificacionViewModel::class.java) -> CalificacionViewModel(repository, pedidoRepository) as T
+
+            else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
     }
 }

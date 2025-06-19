@@ -5,6 +5,7 @@ import android.util.Log
 import com.una.cletaeats.data.model.Cliente
 import com.una.cletaeats.data.model.Repartidor
 import com.una.cletaeats.data.model.Restaurante
+import com.una.cletaeats.data.model.TipoUsuario
 import com.una.cletaeats.data.model.Usuario
 
 // Ahora es una clase que necesita el contexto de la aplicación
@@ -19,6 +20,10 @@ class UsuarioRepository(context: Context) {
 
     // La lógica de login ahora debe leer de TODOS los archivos de usuarios
     fun obtenerUsuario(correo: String, password: String): Usuario? {
+        if (correo == "admin@cletaeats.com" && password == "admin123") {
+            // Si las credenciales coinciden, creamos un objeto Usuario de tipo ADMIN
+            return Usuario(correo, password, TipoUsuario.ADMIN)
+        }
         // Buscamos en la lista de clientes
         val clienteEncontrado = clienteDao.obtenerTodosLosClientes()
             .find { it.correo == correo && it.password == password }
@@ -92,5 +97,47 @@ class UsuarioRepository(context: Context) {
 
     fun actualizarRestaurante(restaurante: Restaurante) {
         restauranteDao.actualizarRestaurante(restaurante)
+    }
+    // ==========================================================
+    // ===== LÓGICA DE REPORTES ====
+    // ==========================================================
+
+    /**
+     * Reporte e) Listado de Clientes: id, cédula, nombre, solo estado activo
+     */
+    fun obtenerClientesActivos(): List<Cliente> {
+        return clienteDao.obtenerTodosLosClientes().filter { it.estado == com.una.cletaeats.data.model.EstadoCliente.ACTIVO }
+    }
+
+    /**
+     * Reporte f) Listado de Clientes: id, cédula, nombre, solo estado suspendido
+     */
+    fun obtenerClientesSuspendidos(): List<Cliente> {
+        return clienteDao.obtenerTodosLosClientes().filter { it.estado == com.una.cletaeats.data.model.EstadoCliente.SUSPENDIDO }
+    }
+
+    /**
+     * Reporte g) Listado de Repartidores: id, cédula, nombre, con cero amonestaciones
+     */
+    fun obtenerRepartidoresSinAmonestaciones(): List<Repartidor> {
+        return repartidorDao.obtenerTodosLosRepartidores().filter { it.amonestaciones == 0 }
+    }
+    /**
+     * Reporte h) Listado de Restaurantes: nombre, cedula jurídica, dirección, tipo de comida
+     */
+    fun obtenerReporteRestaurantes(): List<String> {
+        return restauranteDao.obtenerTodosLosRestaurantes().map {
+            "Restaurante: ${it.nombre} (C.J. ${it.cedulaJuridica}) - Tipo: ${it.tipoComida} - Dir: ${it.direccion}"
+        }
+    }
+
+    /**
+     * Reporte m) Listado de quejas por cada repartidor
+     */
+    fun obtenerReporteQuejasPorRepartidor(): List<String> {
+        return repartidorDao.obtenerTodosLosRepartidores().map { repartidor ->
+            val quejasStr = if (repartidor.quejas.isEmpty()) "Sin quejas." else repartidor.quejas.joinToString(" | ")
+            "Repartidor: ${repartidor.nombre} (Cédula: ${repartidor.cedula}) - Quejas: [${quejasStr}]"
+        }
     }
 }

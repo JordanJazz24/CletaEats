@@ -9,10 +9,11 @@ data class Pedido(
     val repartidor: Repartidor?,
     val estado: EstadoPedido,
     val fechaHoraPedido: String,
-    var fechaHoraEntrega: String? = null
+    var fechaHoraEntrega: String? = null,
+    var calificado: Boolean = false,
+    val costoTransporte: Double,
 ) {
     val subtotal: Double get() = combos.sumOf { it.precio }
-    val costoTransporte: Int get() = calcularCostoTransporte()
     val iva: Double get() = subtotal * 0.13
     val total: Double get() = subtotal + iva + costoTransporte
 
@@ -24,8 +25,10 @@ data class Pedido(
     }
 
     private fun esFeriado(): Boolean {
-        // TODO: implementar verificación real
-        return false
+        // Simulación simple: consideraremos Sábado y Domingo como "feriados" para la tarifa
+        val calendario = java.util.Calendar.getInstance()
+        val diaDeLaSemana = calendario.get(java.util.Calendar.DAY_OF_WEEK)
+        return diaDeLaSemana == java.util.Calendar.SATURDAY || diaDeLaSemana == java.util.Calendar.SUNDAY
     }
 }
 

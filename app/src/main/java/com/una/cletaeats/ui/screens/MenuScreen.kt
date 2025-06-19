@@ -68,7 +68,8 @@ fun MenuScreen(
                 iva = uiState.iva,
                 total = uiState.total,
                 onRemove = { combo -> viewModel.removerComboDelPedido(combo) },
-                onPlaceOrder = { viewModel.realizarPedido(cliente, restaurante) }
+                onPlaceOrder = { viewModel.realizarPedido(cliente, restaurante) },
+                costoEnvio = uiState.costoEnvio
             )
         }
     }
@@ -99,7 +100,8 @@ fun OrderSummary(
     iva: Double,
     total: Double,
     onRemove: (Combo) -> Unit,
-    onPlaceOrder: () -> Unit
+    onPlaceOrder: () -> Unit,
+    costoEnvio: Double
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(8.dp),
@@ -115,6 +117,13 @@ fun OrderSummary(
                 }
             }
             Divider(Modifier.padding(vertical = 8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Costo de Envío:")
+                Text("₡$costoEnvio")
+            }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Subtotal:")
                 Text("₡$subtotal")

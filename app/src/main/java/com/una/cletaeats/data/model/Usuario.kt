@@ -6,5 +6,5 @@ open class Usuario(
    open val rol: TipoUsuario
 )
 enum class TipoUsuario {
-    CLIENTE, REPARTIDOR, RESTAURANTE
+    CLIENTE, REPARTIDOR, RESTAURANTE, ADMIN
 }

@@ -14,26 +14,48 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.una.cletaeats.data.repository.UsuarioRepository
+import java.util.Calendar
 
 data class OrderUiState(
     val catalogoCombos: List<Combo> = emptyList(),
     val combosEnPedido: List<Combo> = emptyList(),
     val subtotal: Double = 0.0,
     val iva: Double = 0.0,
+    val costoEnvio: Double = 0.0,
     val total: Double = 0.0,
     val pedidoResult: Pedido? = null,
     val errorPedido: String? = null
 )
 
-class OrderViewModel(private val context: Context) : ViewModel() {
+class OrderViewModel(private val context: Context,
+                     private val repository: UsuarioRepository) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OrderUiState())
     val uiState: StateFlow<OrderUiState> = _uiState.asStateFlow()
-    private val pedidoRepository = PedidoRepository(context)
+    // 3. Le pasamos el 'repository' al crear el PedidoRepository
+    private val pedidoRepository = PedidoRepository(context, repository)
 
+    // Guardamos la distancia simulada para este pedido
+    private var distanciaSimuladaEnKm: Int = 0
     init {
         generarCatalogoDeCombos()
+        // 1. Simulamos la distancia y recalculamos los totales tan pronto como se crea el ViewModel
+        simularDistanciaYCalcularCostos()
     }
+
+    private fun simularDistanciaYCalcularCostos() {
+        distanciaSimuladaEnKm = (1..15).random()
+        recalcularTotales()
+    }
+    // 2. La lógica de si es feriado ahora vive aquí
+    private fun esFeriado(): Boolean {
+        val calendario = Calendar.getInstance()
+        val diaDeLaSemana = calendario.get(Calendar.DAY_OF_WEEK)
+        return diaDeLaSemana == Calendar.SATURDAY || diaDeLaSemana == Calendar.SUNDAY
+    }
+
+
 
     fun agregarComboAlPedido(combo: Combo) {
         _uiState.update { it.copy(combosEnPedido = it.combosEnPedido + combo) }
@@ -53,7 +75,14 @@ class OrderViewModel(private val context: Context) : ViewModel() {
         viewModelScope.launch {
             val combos = _uiState.value.combosEnPedido
             if (combos.isNotEmpty()) {
-                val resultadoPedido = pedidoRepository.realizarPedido(cliente, restaurante, combos)
+                // 3. Le pasamos la distancia y el costo ya calculados al repositorio
+                val resultadoPedido = pedidoRepository.realizarPedido(
+                    cliente,
+                    restaurante,
+                    combos,
+                    distanciaSimuladaEnKm,
+                    _uiState.value.costoEnvio
+                )
                 if (resultadoPedido != null) {
                     _uiState.update { it.copy(pedidoResult = resultadoPedido, errorPedido = null) }
                 } else {
@@ -79,9 +108,17 @@ class OrderViewModel(private val context: Context) : ViewModel() {
     private fun recalcularTotales() {
         _uiState.update { currentState ->
             val subtotal = currentState.combosEnPedido.sumOf { it.precio }
+            val costoPorKm = if (esFeriado()) 1500 else 1000
+            val costoEnvio = (distanciaSimuladaEnKm * costoPorKm).toDouble()
             val iva = subtotal * 0.13
-            val total = subtotal + iva
-            currentState.copy(subtotal = subtotal, iva = iva, total = total)
+            val total = subtotal + costoEnvio + iva
+
+            currentState.copy(
+                subtotal = subtotal,
+                iva = iva,
+                costoEnvio = costoEnvio, // <-- Actualizamos el estado con el costo
+                total = total
+            )
         }
     }
 }

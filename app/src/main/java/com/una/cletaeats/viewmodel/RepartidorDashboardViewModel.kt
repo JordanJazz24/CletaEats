@@ -49,7 +49,12 @@ class RepartidorDashboardViewModel(
                 // 2. OBTENEMOS AL REPARTIDOR Y LO LIBERAMOS
                 val repartidor = pedido.repartidor
                 if (repartidor != null) {
-                    val repartidorLiberado = repartidor.copy(estado = EstadoRepartidor.DISPONIBLE)
+                    val kmActualizados = repartidor.kmRecorridosDiarios + repartidor.distanciaPedido
+                    val repartidorLiberado = repartidor.copy(
+                        estado = EstadoRepartidor.DISPONIBLE,
+                        kmRecorridosDiarios = kmActualizados, // Guardamos el nuevo total de km
+                        distanciaPedido = 0 // Reseteamos la distancia del pedido actual
+                    )
                     // 3. Guardamos los cambios del repartidor usando el UsuarioRepository
                     usuarioRepository.actualizarRepartidor(repartidorLiberado)
                 }

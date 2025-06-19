@@ -4,6 +4,7 @@ import android.content.Intent
 import android.widget.Toast
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,7 +45,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppMain() {
     // ESTADOS DE NAVEGACIÓN
-    var pantallaActual by remember { mutableStateOf("login") }
+    val navStack = remember { mutableStateListOf("login") }
+    val pantallaActual = navStack.last()
     var tipoRegistroSeleccionado by remember { mutableStateOf<com.una.cletaeats.ui.screens.TipoRegistro?>(null) }
     var restauranteIdSeleccionado by remember { mutableStateOf<String?>(null) }
     var usuarioLogueado by remember { mutableStateOf<com.una.cletaeats.data.model.Usuario?>(null) }
@@ -66,10 +68,21 @@ fun AppMain() {
     val repartidorDashboardViewModel: com.una.cletaeats.viewmodel.RepartidorDashboardViewModel = viewModel(factory = factory)
     val restauranteDashboardViewModel: com.una.cletaeats.viewmodel.RestauranteDashboardViewModel = viewModel(factory = factory)
     val misPedidosViewModel: com.una.cletaeats.viewmodel.MisPedidosViewModel = viewModel(factory = factory)
+    val reportesViewModel: com.una.cletaeats.viewmodel.ReportesViewModel = viewModel(factory = factory)
+    val calificacionViewModel: com.una.cletaeats.viewmodel.CalificacionViewModel = viewModel(factory = factory)
     val gestionarMenuViewModel: com.una.cletaeats.viewmodel.GestionarMenuViewModel = viewModel(factory = factory)
     val PANTALLA_GESTIONAR_MENU = "gestionar_menu"
     val PANTALLA_MIS_PEDIDOS = "mis_pedidos"
     val PANTALLA_FACTURA = "factura"
+    val PANTALLA_REPORTES = "reportes"
+
+
+    BackHandler(enabled = navStack.size > 1) {
+        // Esta es la lógica para ir "atrás": simplemente elimina el último elemento de la lista.
+        // El 'enabled' se asegura de que esto solo funcione si hay más de una pantalla en el historial.
+        // Si solo queda una ("login"), el back handler se deshabilita y el botón "Atrás" cerrará la app.
+        navStack.removeAt(navStack.lastIndex)
+    }
 
     // NAVEGACIÓN
     when (pantallaActual) {
@@ -78,30 +91,33 @@ fun AppMain() {
             onLoginSuccess = { usuario ->
                 usuarioLogueado = usuario
                 when (usuario.rol) {
-                    com.una.cletaeats.data.model.TipoUsuario.CLIENTE -> pantallaActual = "home_cliente"
-                    com.una.cletaeats.data.model.TipoUsuario.REPARTIDOR -> pantallaActual = "home_repartidor"
-                    com.una.cletaeats.data.model.TipoUsuario.RESTAURANTE -> pantallaActual = "home_restaurante"
+                    com.una.cletaeats.data.model.TipoUsuario.CLIENTE -> navStack.add("home_cliente")
+                    com.una.cletaeats.data.model.TipoUsuario.REPARTIDOR -> navStack.add("home_repartidor")
+                    com.una.cletaeats.data.model.TipoUsuario.RESTAURANTE -> navStack.add("home_restaurante")
+                    com.una.cletaeats.data.model.TipoUsuario.ADMIN -> navStack.add("reportes")
                 }
             },
-            onNavigateToRegistro = { pantallaActual = "seleccion_registro" }
+            onNavigateToRegistro = { navStack.add("seleccion_registro") }
         )
         "seleccion_registro" -> SeleccionTipoRegistroScreen(
             onTipoSeleccionado = { tipo ->
                 tipoRegistroSeleccionado = tipo
-                pantallaActual = "registro"
+                navStack.add("registro")
             },
-            onVolver = { pantallaActual = "login" }
+            onVolver = { navStack.removeAt(navStack.lastIndex)  }
         )
         "registro" -> when (tipoRegistroSeleccionado) {
-            com.una.cletaeats.ui.screens.TipoRegistro.CLIENTE -> RegistroClienteScreen(viewModel = registroClienteViewModel, onClienteRegistrado = { pantallaActual = "login" }, onVolver = { pantallaActual = "seleccion_registro" })
-            com.una.cletaeats.ui.screens.TipoRegistro.REPARTIDOR -> RegistroRepartidorScreen(viewModel = registroRepartidorViewModel, onRepartidorRegistrado = { pantallaActual = "login" }, onVolver = { pantallaActual = "seleccion_registro" })
-            com.una.cletaeats.ui.screens.TipoRegistro.RESTAURANTE -> RegistroRestauranteScreen(viewModel = registroRestauranteViewModel, onRestauranteRegistrado = { pantallaActual = "login" }, onVolver = { pantallaActual = "seleccion_registro" })
-            else -> pantallaActual = "login"
+            com.una.cletaeats.ui.screens.TipoRegistro.CLIENTE -> RegistroClienteScreen(viewModel = registroClienteViewModel, onClienteRegistrado = { navStack.add("login") }, onVolver = { navStack.removeAt(navStack.lastIndex) })
+            com.una.cletaeats.ui.screens.TipoRegistro.REPARTIDOR -> RegistroRepartidorScreen(viewModel = registroRepartidorViewModel, onRepartidorRegistrado = { navStack.add("login") }, onVolver = { navStack.removeAt(navStack.lastIndex) })
+            com.una.cletaeats.ui.screens.TipoRegistro.RESTAURANTE -> RegistroRestauranteScreen(viewModel = registroRestauranteViewModel, onRestauranteRegistrado = { navStack.add("login") }, onVolver = { navStack.removeAt(navStack.lastIndex) })
+            else -> navStack.removeAt(navStack.lastIndex)
         }
         "home_cliente" -> HomeScreen(
             viewModel = homeViewModel,
-            onLogout = { usuarioLogueado = null; pantallaActual = "login" },
+            onLogout = { usuarioLogueado = null; navStack.clear() // Limpiamos todo el historial
+                navStack.add("login") },
             onRestaurantClick = { restaurante ->
+                restauranteIdSeleccionado = restaurante.cedulaJuridica
                 // Nos aseguramos de tener un cliente logueado
                 val cliente = usuarioLogueado as? Cliente
                 if (cliente != null) {
@@ -137,10 +153,9 @@ fun AppMain() {
 
                 // 4. Después de lanzar el intent, continuamos con la navegación a la pantalla de menú
                 // por si el usuario decide no enviar el correo y quiere ordenar de todas formas.
-                restauranteIdSeleccionado = restaurante.cedulaJuridica
-                pantallaActual = "menu_restaurante"
+                navStack.add("menu_restaurante")
             },
-            onMisPedidosClick = { pantallaActual = PANTALLA_MIS_PEDIDOS }
+            onMisPedidosClick = { navStack.add("mis_pedidos") }
         )
         "menu_restaurante" -> {
             val cliente = usuarioLogueado as? com.una.cletaeats.data.model.Cliente
@@ -150,11 +165,13 @@ fun AppMain() {
                     viewModel = orderViewModel,
                     cliente = cliente,
                     restaurante = restaurante,
-                    onVolver = { pantallaActual = "home_cliente" },
-                    onPedidoExitoso = { pantallaActual = "home_cliente" }
+                    // CORRECCIÓN: Usamos navStack.removeLast para volver
+                    onVolver = { navStack.removeAt(navStack.lastIndex) },
+                    onPedidoExitoso = { // Al hacer pedido, volvemos al home, quitando la pantalla de menú del historial
+                        navStack.removeAt(navStack.lastIndex) }
                 )
             } else {
-                pantallaActual = "home_cliente"
+                navStack.removeAt(navStack.lastIndex)
             }
         }
         "home_repartidor" -> {
@@ -165,14 +182,16 @@ fun AppMain() {
                 RepartidorDashboardScreen(
                     viewModel = repartidorDashboardViewModel,
                     repartidor = repartidor,
+                    // CORRECCIÓN: Usamos clear() y add() para el logout
                     onLogout = {
                         usuarioLogueado = null
-                        pantallaActual = "login"
+                        navStack.clear()
+                        navStack.add("login")
                     }
                 )
             } else {
                 // Si algo sale mal, por seguridad, volvemos al login
-                pantallaActual = "login"
+                navStack.removeAt(navStack.lastIndex)
             }
         }
 
@@ -182,17 +201,19 @@ fun AppMain() {
                 RestauranteDashboardScreen(
                     viewModel = restauranteDashboardViewModel,
                     restaurante = restaurante,
-                    // AÑADE ESTE PARÁMETRO Y SU LÓGICA
+                    // CORRECCIÓN: Usamos navStack.add para navegar
                     onGestionarMenuClick = {
-                        pantallaActual = PANTALLA_GESTIONAR_MENU
+                        navStack.add("gestionar_menu")
                     },
+                    // CORRECIÓN: Usamos clear() y add() para el logout
                     onLogout = {
                         usuarioLogueado = null
-                        pantallaActual = "login"
+                        navStack.clear()
+                        navStack.add("login")
                     }
                 )
             } else {
-                pantallaActual = "login"
+                navStack.removeAt(navStack.lastIndex)
             }
         }
         PANTALLA_GESTIONAR_MENU -> {
@@ -201,11 +222,11 @@ fun AppMain() {
                 GestionarMenuScreen(
                     viewModel = gestionarMenuViewModel,
                     restaurante = restaurante,
-                    onGuardado = { pantallaActual = "home_restaurante" },
-                    onVolver = { pantallaActual = "home_restaurante" }
+                    onGuardado = { navStack.removeAt(navStack.lastIndex) },
+                    onVolver = { navStack.removeAt(navStack.lastIndex) }
                 )
             } else {
-                pantallaActual = "login"
+                navStack.removeAt(navStack.lastIndex)
             }
         }
 
@@ -213,16 +234,17 @@ fun AppMain() {
             val cliente = usuarioLogueado as? Cliente
             if (cliente != null) {
                 MisPedidosScreen(
-                    viewModel = misPedidosViewModel,
+                    misPedidosViewModel = misPedidosViewModel,
+                    calificacionViewModel = calificacionViewModel,
                     cliente = cliente,
                     onPedidoClick = { pedido ->
                         pedidoSeleccionado = pedido
-                        pantallaActual = PANTALLA_FACTURA
+                        navStack.add("factura")
                     },
-                    onVolver = { pantallaActual = "home_cliente" }
+                    onVolver = { navStack.removeAt(navStack.lastIndex) }
                 )
             } else {
-                pantallaActual = "login"
+                navStack.removeAt(navStack.lastIndex)
             }
         }
 
@@ -231,14 +253,28 @@ fun AppMain() {
             if (pedido != null) {
                 FacturaScreen(
                     pedido = pedido,
-                    onVolver = { pantallaActual = PANTALLA_MIS_PEDIDOS }
+                    onVolver = { navStack.removeAt(navStack.lastIndex) }
                 )
             } else {
-                pantallaActual = PANTALLA_MIS_PEDIDOS
+                navStack.removeAt(navStack.lastIndex)
             }
         }
+        PANTALLA_REPORTES -> {
+            ReportesScreen(
+                viewModel = reportesViewModel,
+                onVolver = {
+                    // Si el admin va para atrás, debe cerrar sesión
+                    usuarioLogueado = null
+                    navStack.clear()
+                    navStack.add("login")
+                }
+            )
+        }
 
-        else -> pantallaActual = "login"
+        else -> {
+            navStack.clear()
+            navStack.add("login")
+        }
     }
 }
 
