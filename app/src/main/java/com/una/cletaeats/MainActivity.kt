@@ -58,6 +58,7 @@ fun AppMain() {
     val registroRestauranteViewModel: com.una.cletaeats.viewmodel.RegistroRestauranteViewModel = viewModel(factory = factory)
     val homeViewModel: com.una.cletaeats.viewmodel.HomeViewModel = viewModel(factory = factory)
     val orderViewModel: com.una.cletaeats.viewmodel.OrderViewModel = viewModel(factory = factory)
+    val repartidorDashboardViewModel: com.una.cletaeats.viewmodel.RepartidorDashboardViewModel = viewModel(factory = factory)
 
     // NAVEGACIÓN
     when (pantallaActual) {
@@ -109,7 +110,25 @@ fun AppMain() {
                 pantallaActual = "home_cliente"
             }
         }
-        "home_repartidor" -> PlaceholderScreen(mensaje = "Bienvenido, Repartidor", onVolver = { pantallaActual = "login" })
+        "home_repartidor" -> {
+            // Nos aseguramos de que el usuario logueado sea un repartidor
+            val repartidor = usuarioLogueado as? com.una.cletaeats.data.model.Repartidor
+            if (repartidor != null) {
+                // Y mostramos la pantalla del dashboard, pasándole el viewModel y el repartidor
+                RepartidorDashboardScreen(
+                    viewModel = repartidorDashboardViewModel,
+                    repartidor = repartidor,
+                    onLogout = {
+                        usuarioLogueado = null
+                        pantallaActual = "login"
+                    }
+                )
+            } else {
+                // Si algo sale mal, por seguridad, volvemos al login
+                pantallaActual = "login"
+            }
+        }
+
         "home_restaurante" -> PlaceholderScreen(mensaje = "Bienvenido, Restaurante", onVolver = { pantallaActual = "login" })
         else -> pantallaActual = "login"
     }

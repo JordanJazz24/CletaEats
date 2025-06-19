@@ -42,4 +42,8 @@ class PedidoRepository(private val context: Context) {
     fun obtenerPedidos(): List<Pedido> {
         return pedidoDao.obtenerTodosLosPedidos()
     }
+
+    fun actualizarPedido(pedido: Pedido) {
+        pedidoDao.actualizarPedido(pedido)
+    }
 }

@@ -91,4 +91,19 @@ class PedidoDao(private val context: Context) {
             return emptyList()
         }
     }
+
+    fun actualizarPedido(pedidoActualizado: Pedido) {
+        try {
+            val todosLosPedidos = obtenerTodosLosPedidos().toMutableList()
+            val index = todosLosPedidos.indexOfFirst { it.id == pedidoActualizado.id }
+
+            if (index != -1) {
+                todosLosPedidos[index] = pedidoActualizado
+                // Reescribimos el archivo completo con la lista actualizada
+                file.writeText(todosLosPedidos.joinToString(separator = "") { pedidoToCsv(it) })
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
 }
